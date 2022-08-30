@@ -1,13 +1,27 @@
 <!DOCTYPE html>
 <html>
-	<head>
+    <head>
         <meta charset="utf-8" />
-		<title>Stupid Server</title>
-	</head>
-	<body>
+        <title>Stupid Server</title>
+    </head>
+    <body>
         <h1> Hello! Welcome to the stupid server! </h1>
 
         <p>This is neither rfc compliant nor secure, so I hope you never
         use this ever!</p>
-	</body>
+
+        <img type="image/png" src="GnuIsMyPepper.png">
+
+        <p>Site visited <span id="n_visits"></span> times</p>
+        <script>
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    document.getElementById("n_visits").innerHTML = this.responseText;
+                }
+            };
+            xhttp.open("GET", "n_visits", true);
+            xhttp.send();
+        </script>
+    </body>
 </html>

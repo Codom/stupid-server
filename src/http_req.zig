@@ -8,7 +8,6 @@ const std = @import("std");
 const StreamServer = std.net.StreamServer;
 const Address = std.net.Address;
 
-
 buf: []const u8,
 header: []const u8,
 
@@ -20,6 +19,7 @@ path: []const u8,
 /// Upon return it is the callers responsibility
 /// to free (ie through deinit())
 pub fn parse(con: StreamServer.Connection) !@This() {
+    std.log.debug("Parsing request from con {{ .stream={d}, .address={any} }}", .{con.stream, con.address});
     var reader = con.stream.reader();
     var buf = try std.heap.page_allocator.alloc(u8, 2048);
     errdefer std.heap.page_allocator.destroy(buf.ptr);

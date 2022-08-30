@@ -11,21 +11,47 @@ const KB = 1024;
 const MB = 1024 * KB;
 const GB = 1024 * MB;
 
+const CustomRoute = struct {
+    method: []const u8,
+    function: fn(allocator: std.mem.Allocator) ServerMedia,
+};
+
+const custom_routes = std.ComptimeStringMap(CustomRoute, .{
+    .{"/n_visits", CustomRoute {.method = "get", .function = n_visits}},
+});
+
+// Just a test don't panic b/c global
+var n: usize = 0;
+fn n_visits(allocator: std.mem.Allocator) ServerMedia {
+    n += 1;
+    const res = std.fmt.allocPrint(allocator, "{d}", .{n}) catch unreachable;
+    std.log.info("n_visits = {s}", .{res});
+    return ServerMedia {
+        .media_type = "text/text",
+        .res = res,
+    };
+}
+
 pub fn get(uri: []const u8, allocator: std.mem.Allocator) !ServerMedia {
+    if(custom_routes.get(uri)) |route| {
+        return route.function(allocator);
+    }
     const content = read_file(uri, allocator) catch |e| {
         return error_404(e);
     };
     const media_type = infer_media(uri) catch |e| {
         return error_404(e);
     };
-    return ServerMedia {
+    const ret = ServerMedia {
         .media_type = media_type,
         .res = content,
     };
+    return ret;
 }
 
 
 fn error_404(e: anyerror) ServerMedia {
+    std.log.info("Responding with 404", .{});
     return ServerMedia {.response_code = "404 Not Foud", .media_type = "text/text", .res = @errorName(e)};
 }
 
@@ -33,6 +59,7 @@ const extension_map = [_][2][]const u8 {
     .{"html", "text/html"},
     .{"txt",  "text/text"},
     .{"ico",  "image/"},
+    .{"png",  "image/png"},
 };
 
 fn infer_media(uri: []const u8) ![]const u8 {
